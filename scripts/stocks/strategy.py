@@ -135,6 +135,16 @@ def get_next_bar_time(current_bar_time, timeframe):
     elif timeframe == TimeFrameUnit.Day:
         return current_bar_time + timedelta(days=1)
 
+def get_clock(api, retries=3, delay=5):
+    for attempt in range(retries):
+        try:
+            return api.get_clock()
+        except Exception as e:
+            if attempt < retries - 1:
+                time.sleep(delay)
+            else:
+                raise e
+
 def main():
     """Main trading loop and setup."""
     
@@ -154,7 +164,7 @@ def main():
     logging.info("=== Strategy started ===")
 
     # remembers whether the market was open in the previous iteration
-    clock = trade_client.get_clock()
+    clock = get_clock(trade_client)
     market_open = clock.is_open
 
     # Set tracking signal flags over a predefined window
