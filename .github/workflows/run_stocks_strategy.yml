@@ -1,0 +1,59 @@
+name: Run Stocks Trading Strategy
+
+on:
+  schedule:
+    - cron: '59 13 * * 1-5'  # 8:59 AM ET
+  workflow_dispatch: 
+
+jobs:
+  load-symbols:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4.1.7
+      - id: set-matrix
+        run: echo "matrix=$(cat config/symbols.json)" >> $GITHUB_OUTPUT
+      
+  run-strategy:
+    needs: load-symbols
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        symbol: ${{ fromJson(needs.load-symbols.outputs.matrix) }}
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+      ALPACA_KEY: ${{ secrets.ALPACA_KEY }}
+      ALPACA_SECRET: ${{ secrets.ALPACA_SECRET }}
+      ALPACA_URL: ${{ secrets.ALPACA_URL }}
+      ALPACA_PAPER_TRADE: ${{ secrets.ALPACA_PAPER_TRADE }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.7
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.1.0
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r examples/stocks/build_trading_bot_with_ChatGPT/requirements.txt
+
+      - name: Run Trading Strategy
+        run: |
+          python examples/stocks/build_trading_bot_with_ChatGPT/strategy.py --symbol ${{ matrix.symbol }}
+
+      - name: Display Trade Log
+        if: always()
+        run: |
+          cat examples/stocks/build_trading_bot_with_ChatGPT/trade_log.txt || echo "No trade log found yet"
+
+      - name: Commit Trade Log
+        if: always()
+        run: |
+          git config --local user.name 'GitHub Action'
+          git config --local user.email 'action@github.com'
+          git add examples/stocks/build_trading_bot_with_ChatGPT/trade_log.txt || true
+          git commit -m 'Update trade log' || echo 'No changes to commit'
+          git push || true
