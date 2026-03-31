@@ -177,7 +177,6 @@ def main():
     current_bar_index = 0
 
     while True:
-        clock = get_clock(trade_client)
 
         # Detect if the market has just transitioned from open to closed.
         if market_open and not clock.is_open:
