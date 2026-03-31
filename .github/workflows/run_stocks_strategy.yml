@@ -20,8 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        symbol: ${{ fromJson(needs.load-symbols.outputs.matrix) }}
-      max-parallel: 1 # force sequential
+        symbol: ${{ fromJson(needs.load-symbols.outputs.matrix) }}      
     env:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
       ALPACA_KEY: ${{ secrets.ALPACA_KEY }}
