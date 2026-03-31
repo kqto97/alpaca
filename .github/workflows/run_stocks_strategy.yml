@@ -21,6 +21,7 @@ jobs:
     strategy:
       matrix:
         symbol: ${{ fromJson(needs.load-symbols.outputs.matrix) }}
+      max-parallel: 1 # force sequential
     env:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
       ALPACA_KEY: ${{ secrets.ALPACA_KEY }}
@@ -40,8 +41,9 @@ jobs:
         run: |
           pip install -r scripts/stocks/requirements.txt
 
-      - name: Run Trading Strategy
+      - name: Run Trading Strategy          
         run: |
+          sleep 5
           python scripts/stocks/strategy.py --symbol ${{ matrix.symbol }}
 
       - name: Display Trade Log
