@@ -30,6 +30,9 @@ from alpaca.trading.enums import (
 )
 from alpaca.trading.requests import LimitOrderRequest, MarketOrderRequest
 
+# Start tracking time
+START_TIME = time.time()
+MAX_RUNTIME_SECONDS = 4 * 60 * 60 # 4 hours
 
 # Set the local timezone
 NY_TZ = ZoneInfo('America/New_York')
@@ -144,7 +147,18 @@ def get_clock(api, retries=3, delay=5):
                 time.sleep(delay)
             else:
                 raise e
+def runtime_exceeded():
+    return (time.time() - START_TIME) >= MAX_RUNTIME_SECONDS
 
+def trigger_next_instance():
+    token = os.environ["GIBHUB_TOKEN"]
+    repo = os.environ["GITHUB_REPOSITORY"]
+    url = f"https://api.github.com/repos/{repo}/actions/workflow/run_stocks_strategy.yml/dispatches"
+    requests.post(url, headers={
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json"
+    }, json={"ref": "main"}).raise_for_status()
+    
 def main():
     """Main trading loop and setup."""
     
@@ -194,7 +208,13 @@ def main():
         if not clock.is_open:
             logging.info("Market is closed. Exiting.")
             exit(0)
-        
+            
+        # If it's been running for 4 hours, start another instance then exit
+        if runtime_exceeded():
+            logging.info("Runtime exceeded. Starting another instance and exiting.")
+            trigger_next_instance()
+            exit(0)
+            
         # Fetch data
         df_main = fetch_bars(stock_data_client, underlying_symbol, TIMEFRAME_MAIN, days=MA_SLOW + 100)
         df_trend = fetch_bars(stock_data_client, underlying_symbol, TIMEFRAME_TREND, days=MA_SLOW + 10)
@@ -314,7 +334,7 @@ def main():
                 # Reset exit signals
                 rsi_retreat_bar = None
                 macd_death_cross_bar = None
-                macd_centerline_bar = None
+                macd_centerline_bar = None                 
         # Hourly scheduling
         # Compute the timestamp for the next top of hour
         next_run = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
