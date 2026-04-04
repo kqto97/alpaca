@@ -7,10 +7,7 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 # Import third party modules
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-from dotenv import load_dotenv
 
 # Import Alpaca modules
 from alpaca.data.historical.stock import (
