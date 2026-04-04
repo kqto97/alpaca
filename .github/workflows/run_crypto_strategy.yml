@@ -1,4 +1,4 @@
-name: Run Stocks Trading Strategy
+name: Run Crypto Trading Strategy
 
 on:
   schedule:
