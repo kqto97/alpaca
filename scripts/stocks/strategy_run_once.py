@@ -27,10 +27,6 @@ from alpaca.trading.enums import (
 )
 from alpaca.trading.requests import LimitOrderRequest, MarketOrderRequest
 
-# Start tracking time
-START_TIME = time.time()
-MAX_RUNTIME_SECONDS = 4 * 60 * 60 # 4 hours
-
 # Set the local timezone
 NY_TZ = ZoneInfo('America/New_York')
 
@@ -69,18 +65,6 @@ if not API_KEY or not API_SECRET:
 # setup trading clients
 trade_client = TradingClient(api_key=API_KEY, secret_key=API_SECRET, paper=ALPACA_PAPER_TRADE, url_override=trade_api_url)
 stock_data_client = StockHistoricalDataClient(api_key=API_KEY, secret_key=API_SECRET)
-
-# Helper: Pause execution until the specified UTC datetime.
-def sleep_until(target_time, chunk_seconds=30):
-    """Pause until target_time (UTC) in small chunks for responsiveness."""
-    if target_time.tzinfo is None:
-        target_time = target_time.replace(tzinfo=timezone.utc)
-    while True:
-        now = datetime.now(timezone.utc)
-        remaining = (target_time - now).total_seconds()
-        if remaining <= 0:
-            break
-        time.sleep(min(remaining, chunk_seconds))
         
 # Helper: Fetch recent bar data  
 def fetch_bars(client: StockHistoricalDataClient, underlying_symbol: str, timeframe_unit: TimeFrameUnit, days: int = 90) -> pd.DataFrame:
@@ -144,17 +128,6 @@ def get_clock(api, retries=3, delay=5):
                 time.sleep(delay)
             else:
                 raise e
-def runtime_exceeded():
-    return (time.time() - START_TIME) >= MAX_RUNTIME_SECONDS
-
-def trigger_next_instance():
-    token = os.environ["GIBHUB_TOKEN"]
-    repo = os.environ["GITHUB_REPOSITORY"]
-    url = f"https://api.github.com/repos/{repo}/actions/workflow/run_stocks_strategy.yml/dispatches"
-    requests.post(url, headers={
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github+json"
-    }, json={"ref": "main"}).raise_for_status()
     
 def main():
     """Main trading loop and setup."""
@@ -191,10 +164,8 @@ def main():
 
         # Detect if the market has just transitioned from open to closed.
         if market_open and not clock.is_open:
-            logging.info("Market closed. Sleeping until next open at %s", clock.next_open)
-            market_open = False
-            sleep_until(clock.next_open)
-            continue        # skip the rest of the loop while the market is shut
+            logging.info("Market closed. Exiting.")
+            exit(0)
 
         # Detect if the market has just transitioned from closed to open.
         if (not market_open) and clock.is_open:
@@ -204,12 +175,6 @@ def main():
         # Detect if the market is closed (e.g., at script start or unexpected state), exit to prevent trading.
         if not clock.is_open:
             logging.info("Market is closed. Exiting.")
-            exit(0)
-            
-        # If it's been running for 4 hours, start another instance then exit
-        if runtime_exceeded():
-            logging.info("Runtime exceeded. Starting another instance and exiting.")
-            trigger_next_instance()
             exit(0)
             
         # Fetch data
@@ -332,11 +297,6 @@ def main():
                 rsi_retreat_bar = None
                 macd_death_cross_bar = None
                 macd_centerline_bar = None                 
-        # Hourly scheduling
-        # Compute the timestamp for the next top of hour
-        next_run = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
-        # Pause until that exact moment
-        sleep_until(next_run, chunk_seconds=30)
 
 # The code below ensures that the main() function is called only when this script is executed directly.
 # It prevents main() from running if the script is imported as a module in another script.
