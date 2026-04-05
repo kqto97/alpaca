@@ -200,6 +200,8 @@ def main():
     if (macd_prev < sig_prev) and (macd_now > sig_now):
         macd_cross_bar = current_bar_index
 
+    underlying_symbol = f"{underlying_symbol[:-3]}/{underlying_symbol[-3:]}"
+    
     # Entry logic
     if not position_open and in_uptrend and position_size > 0:
         if (rsi_bounce_bar is not None and 
