@@ -11,8 +11,8 @@ import pandas as pd
 
 # Import Alpaca modules
 from alpaca.data.historical.stock import (
-    StockHistoricalDataClient,
-    StockLatestTradeRequest,
+    CryptoHistoricalDataClient,
+    CryptoLatestTradeRequest,
 )
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
@@ -64,17 +64,17 @@ if not API_KEY or not API_SECRET:
 
 # setup trading clients
 trade_client = TradingClient(api_key=API_KEY, secret_key=API_SECRET, paper=ALPACA_PAPER_TRADE, url_override=trade_api_url)
-stock_data_client = StockHistoricalDataClient(api_key=API_KEY, secret_key=API_SECRET)
+crypto_data_client = CryptoHistoricalDataClient(api_key=API_KEY, secret_key=API_SECRET)
         
 # Helper: Fetch recent bar data  
-def fetch_bars(client: StockHistoricalDataClient, underlying_symbol: str, timeframe_unit: TimeFrameUnit, days: int = 90) -> pd.DataFrame:
+def fetch_bars(client: CryptoHistoricalDataClient, symbol: str, timeframe_unit: TimeFrameUnit, days: int = 90) -> pd.DataFrame:
     today = datetime.now(NY_TZ).date()
-    req = StockBarsRequest(
-        symbol_or_symbols=[underlying_symbol],
+    req = CryptoBarsRequest(
+        symbol_or_symbols=[symbol],
         timeframe=TimeFrame(amount=1, unit=timeframe_unit),  # specify timeframe
         start=today - timedelta(days=days),             # specify start datetime, default=the beginning of the current day.
     )
-    return client.get_stock_bars(req).df
+    return client.get_crypto_bars(req).df
 
 # Helper: Compute RSI with Wilder's smoothing
 def compute_rsi(prices, period):
@@ -108,8 +108,8 @@ def calculate_buying_power_limit(buy_power_limit):
 # Helper: Get the latest price of the underlying stock
 def get_underlying_price(symbol):
     # Get the latest trade for the underlying stock
-    underlying_trade_request = StockLatestTradeRequest(symbol_or_symbols=symbol)
-    underlying_trade_response = stock_data_client.get_stock_latest_trade(underlying_trade_request)
+    underlying_trade_request = CryptoLatestTradeRequest(symbol_or_symbols=symbol)
+    underlying_trade_response = crypto_data_client.get_stock_latest_trade(underlying_trade_request)
     return underlying_trade_response[symbol].price
 
 def get_next_bar_time(current_bar_time, timeframe):
@@ -148,12 +148,9 @@ def main():
     current_bar_index = 0
        
     # Fetch data
-    df_main = fetch_bars(stock_data_client, symbol_with_slash, TIMEFRAME_MAIN, days=MA_SLOW + 100)
-    df_trend = fetch_bars(stock_data_client, symbol_with_slash, TIMEFRAME_TREND, days=MA_SLOW + 10)
+    df_main = fetch_bars(crypto_data_client, symbol_with_slash, TIMEFRAME_MAIN, days=MA_SLOW + 100)
+    df_trend = fetch_bars(crypto_data_client, symbol_with_slash, TIMEFRAME_TREND, days=MA_SLOW + 10)
     logging.info("Fetched %d main bars and %d trend bars", len(df_main), len(df_trend))
-
-    print(df_main.head())
-    print(df_main.columns)
     
     # Update current bar index
     current_bar_index = len(df_main) - 1
