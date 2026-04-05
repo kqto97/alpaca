@@ -149,7 +149,6 @@ def main():
 
     # remembers whether the market was open in the previous iteration
     clock = get_clock(trade_client)
-    market_open = clock.is_open
 
     # Set tracking signal flags over a predefined window
     global rsi_bounce_bar, macd_cross_bar, rsi_retreat_bar, macd_death_cross_bar, macd_centerline_bar, current_bar_index
@@ -161,18 +160,9 @@ def main():
     current_bar_index = 0
 
     # Detect if the market has just transitioned from open to closed.
-    if market_open and not clock.is_open:
-        logging.info("Market closed. Exiting.")
-        exit(0)
-
-    # Detect if the market has just transitioned from closed to open.
-    if (not market_open) and clock.is_open:
-        logging.info("Market opened. Resuming trading")
-
-    # Detect if the market is closed (e.g., at script start or unexpected state), exit to prevent trading.
     if not clock.is_open:
-        logging.info("Market is closed. Exiting.")
-        exit(0)
+        logging.info("Market closed. Exiting.")
+        exit(0)  
         
     # Fetch data
     df_main = fetch_bars(stock_data_client, underlying_symbol, TIMEFRAME_MAIN, days=MA_SLOW + 100)
