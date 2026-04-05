@@ -1,8 +1,8 @@
 name: Run Stocks Trading Strategy
 
 on:
-  schedule:
-    - cron: '59 13 * * 1-5'  # 8:59 AM ET
+  schedule:    
+    - cron: '*/5 * * * *' 
   workflow_dispatch: 
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
       - name: Run Trading Strategy          
         run: |
           sleep 5
-          python scripts/stocks/strategy.py --symbol ${{ matrix.symbol }}
+          python scripts/stocks/strategy_stock.py --symbol ${{ matrix.symbol }}
 
       - name: Display Trade Log
         if: always()
