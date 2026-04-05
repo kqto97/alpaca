@@ -105,11 +105,11 @@ def calculate_buying_power_limit(buy_power_limit):
     buying_power_limit = buying_power * buy_power_limit
     return buying_power_limit
 
-# Helper: Get the latest price of the underlying stock
+# Helper: Get the latest price of the underlying crypto
 def get_underlying_price(symbol):
-    # Get the latest trade for the underlying stock
+    # Get the latest trade for the underlying crypto
     underlying_trade_request = CryptoLatestTradeRequest(symbol_or_symbols=symbol)
-    underlying_trade_response = crypto_data_client.get_stock_latest_trade(underlying_trade_request)
+    underlying_trade_response = crypto_data_client.get_crypto_latest_trade(underlying_trade_request)
     return underlying_trade_response[symbol].price
 
 def get_next_bar_time(current_bar_time, timeframe):
@@ -122,7 +122,7 @@ def get_next_bar_time(current_bar_time, timeframe):
 def main():
     """Main trading loop and setup."""
     
-    # Determine the stock (default to ProShares UltraPro QQQ if none is passed in)
+    # Determine the crypto (default to ProShares UltraPro QQQ if none is passed in)
     parser = argparse.ArgumentParser()
     parser.add_argument("--symbol", type=str, default="TQQQ")
     args = parser.parse_args()
