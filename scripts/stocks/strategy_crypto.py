@@ -127,7 +127,8 @@ def main():
     parser.add_argument("--symbol", type=str, default="TQQQ")
     args = parser.parse_args()
     underlying_symbol = args.symbol
-
+    symbol_with_slash = f"{underlying_symbol[:-3]}/{underlying_symbol[-3:]}"
+    
     # Configure logging
     logging.basicConfig(
         filename="trade_log.txt",          # file to write
@@ -147,8 +148,8 @@ def main():
     current_bar_index = 0
        
     # Fetch data
-    df_main = fetch_bars(stock_data_client, underlying_symbol, TIMEFRAME_MAIN, days=MA_SLOW + 100)
-    df_trend = fetch_bars(stock_data_client, underlying_symbol, TIMEFRAME_TREND, days=MA_SLOW + 10)
+    df_main = fetch_bars(stock_data_client, symbol_with_slash, TIMEFRAME_MAIN, days=MA_SLOW + 100)
+    df_trend = fetch_bars(stock_data_client, symbol_with_slash, TIMEFRAME_TREND, days=MA_SLOW + 10)
     logging.info("Fetched %d main bars and %d trend bars", len(df_main), len(df_trend))
     
     # Update current bar index
@@ -164,7 +165,7 @@ def main():
         current_qty = 0
 
     # Compute indicators using helper functions
-    prices = df_main.Close
+    prices = df_main.close
     rsi_series = compute_rsi(prices, RSI_PERIOD)
     macd_line, signal_line = compute_macd(prices, MACD_FAST, MACD_SLOW, MACD_SIGNAL)
 
@@ -198,9 +199,7 @@ def main():
 
     # Detect MACD golden cross
     if (macd_prev < sig_prev) and (macd_now > sig_now):
-        macd_cross_bar = current_bar_index
-
-    underlying_symbol = f"{underlying_symbol[:-3]}/{underlying_symbol[-3:]}"
+        macd_cross_bar = current_bar_index  
     
     # Entry logic
     if not position_open and in_uptrend and position_size > 0:
@@ -209,7 +208,7 @@ def main():
             abs(rsi_bounce_bar - macd_cross_bar) <= WINDOW_SIZE):
             
             req = MarketOrderRequest(
-                symbol=underlying_symbol,
+                symbol=symbol_with_slash,
                 qty=position_size,  # Use calculated position size
                 side=OrderSide.BUY,
                 type=OrderType.MARKET,
@@ -248,7 +247,7 @@ def main():
               abs(rsi_retreat_bar - macd_centerline_bar) <= WINDOW_SIZE))):
             
             req = MarketOrderRequest(
-                symbol=underlying_symbol,
+                symbol=symbol_with_slash,
                 qty=current_qty,
                 side=OrderSide.SELL,
                 type=OrderType.MARKET,
