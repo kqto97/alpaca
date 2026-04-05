@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 
 # Import Alpaca modules
-from alpaca.data.historical.stock import (
+from alpaca.data.historical.crypto import (
     CryptoHistoricalDataClient,
     CryptoLatestTradeRequest,
 )
