@@ -148,8 +148,8 @@ def main():
     current_bar_index = 0
        
     # Fetch data
-    df_main = fetch_bars(stock_data_client, symbol_with_slash, TIMEFRAME_MAIN, days=MA_SLOW + 100)
-    df_trend = fetch_bars(stock_data_client, symbol_with_slash, TIMEFRAME_TREND, days=MA_SLOW + 10)
+    df_main = fetch_bars(stock_data_client, underlying_symbol, TIMEFRAME_MAIN, days=MA_SLOW + 100)
+    df_trend = fetch_bars(stock_data_client, underlying_symbol, TIMEFRAME_TREND, days=MA_SLOW + 10)
     logging.info("Fetched %d main bars and %d trend bars", len(df_main), len(df_trend))
     
     # Update current bar index
