@@ -164,7 +164,7 @@ def main():
         current_qty = 0
 
     # Compute indicators using helper functions
-    prices = df_main.close
+    prices = df_main.Close
     rsi_series = compute_rsi(prices, RSI_PERIOD)
     macd_line, signal_line = compute_macd(prices, MACD_FAST, MACD_SLOW, MACD_SIGNAL)
 
