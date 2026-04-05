@@ -14,7 +14,7 @@ from alpaca.data.historical.stock import (
     CryptoHistoricalDataClient,
     CryptoLatestTradeRequest,
 )
-from alpaca.data.requests import StockBarsRequest
+from alpaca.data.requests import CryptoBarsRequest
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from alpaca.trading.client import TradingClient
 from alpaca.trading.enums import (
