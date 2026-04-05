@@ -148,8 +148,8 @@ def main():
     current_bar_index = 0
        
     # Fetch data
-    df_main = fetch_bars(crypto_data_client, symbol_with_slash, TIMEFRAME_MAIN, days=MA_SLOW + 100)
-    df_trend = fetch_bars(crypto_data_client, symbol_with_slash, TIMEFRAME_TREND, days=MA_SLOW + 10)
+    df_main = fetch_bars(crypto_data_client, underlying_symbol, TIMEFRAME_MAIN, days=MA_SLOW + 100)
+    df_trend = fetch_bars(crypto_data_client, underlying_symbol, TIMEFRAME_TREND, days=MA_SLOW + 10)
     logging.info("Fetched %d main bars and %d trend bars", len(df_main), len(df_trend))
     
     # Update current bar index
@@ -208,7 +208,7 @@ def main():
             abs(rsi_bounce_bar - macd_cross_bar) <= WINDOW_SIZE):
             
             req = MarketOrderRequest(
-                symbol=symbol_with_slash,
+                symbol=underlying_symbol,
                 qty=position_size,  # Use calculated position size
                 side=OrderSide.BUY,
                 type=OrderType.MARKET,
@@ -247,7 +247,7 @@ def main():
               abs(rsi_retreat_bar - macd_centerline_bar) <= WINDOW_SIZE))):
             
             req = MarketOrderRequest(
-                symbol=symbol_with_slash,
+                symbol=underlying_symbol,
                 qty=current_qty,
                 side=OrderSide.SELL,
                 type=OrderType.MARKET,
