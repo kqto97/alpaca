@@ -49,12 +49,3 @@ jobs:
         if: always()
         run: |
           cat scripts/stocks/trade_log.txt || echo "No trade log found yet"
-
-      - name: Commit Trade Log
-        if: always()
-        run: |
-          git config --local user.name 'GitHub Action'
-          git config --local user.email 'action@github.com'
-          git add scripts/stocks/trade_log.txt || true
-          git commit -m 'Update trade log' || echo 'No changes to commit'
-          git push || true
